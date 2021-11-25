@@ -1,0 +1,166 @@
+
+skinparam frame {
+    BorderColor<<release>> #lightgray
+    Shadowing<<release>> false
+}
+
+
+skinparam card {
+    BackgroundColor<<goal>> #DeepSkyBlue
+    BackgroundColor<<action>> #Business
+    BackgroundColor<<story>> #Azure
+}
+
+
+hide <<goal>> stereotype
+hide <<action>> stereotype
+hide <<story>> stereotype
+
+skinparam MinClassWidth 160
+skinparam WrapWidth 160
+skinparam Nodesep 15
+skinparam Ranksep 15
+skinparam Padding 0
+skinparam MinClassHeight 100
+skinparam linetype ortho
+
+!$index=0
+
+!function $nextIndex($prefix)
+!$index = $index + 1
+!return $prefix + $index
+!endfunction
+
+!unquoted procedure release($id) 
+!$var_title="r_"+$id
+!if %not(%variable_exists($var_title))
+    frame $id as "$title" <<release>> 
+    %set_variable_value($var_title, "some_value")
+!endif
+!endprocedure
+
+
+!unquoted procedure goal($title, $description="", $id="")
+!$showid=$id
+!if $showid != ""
+!$showid = $showid + "\t"
+!endif
+!if $id == ""
+!$id = $nextIndex("goal")
+!endif
+card $id <<goal>> [
+$showid##**$title**
+--
+<size:10>$description
+]
+%set_variable_value("$goal_id", $id)
+%set_variable_value("$last_action", "")
+!endprocedure
+
+
+!unquoted procedure action($title, $description="", $id="")
+!$showid=$id
+!if $showid != ""
+!$showid = $showid + "\t"
+!endif
+!if $id == ""
+    !$id=$nextIndex("action")
+!endif
+card $id <<action>>[
+$showid##**$title** 
+--
+<size:10>$description
+]
+!if $last_action == ""
+    $goal_id -[hidden]- $id
+!else
+    $last_action -[hidden]r- $id
+!endif
+%set_variable_value("$last_action", $id)
+%set_variable_value("$last_story", "")
+!endprocedure
+
+
+' rel specific
+!unquoted function $toStereos($tags)
+  !if (%strlen($tags) == 0)
+    !return ''
+  !endif
+  !$stereos = ''
+  !$brPos = %strpos($tags, "+")
+  !while ($brPos >= 0)
+    !$tag = %substr($tags, 0, $brPos)
+    !$stereos = $stereos + '<<' + $tag + '>>'
+%set_variable_value("$" + $tag + "_LineLegend", %true())
+    !$tags = %substr($tags, $brPos+1)
+    !$brPos = %strpos($tags, "+")
+  !endwhile
+  !if (%strlen($tags) > 0)
+    !$stereos = $stereos + '<<' + $tags + '>>'
+%set_variable_value("$" + $tags + "_LineLegend", %true())
+  !endif
+  !return $stereos
+!endfunction
+
+!unquoted procedure story($title, $description="", $id="", $release="", $tags="")
+!$showid=$id
+!if $showid != ""
+!$showid = $showid + "\t"
+!endif
+!if $id == ""
+    !$id=$nextIndex("story")
+!endif
+!if $release != ""
+release($release)
+frame $release {
+!endif
+card $id <<story>> $toStereos($tags)[
+$showid##**$title** 
+!if $description != ""
+--
+<size:10>$description
+!else
+
+!endif
+]
+!if $release != ""
+}
+!endif
+!if $last_story != ""
+    $last_story ~[hidden]~> $id
+!else
+    !if $last_action != ""
+        $last_action 0~[hidden]~ $id
+    !endif
+!endif
+%set_variable_value("$last_story", $id)
+!endprocedure
+
+
+!unquoted procedure space($release="", $id="")
+!if $id == ""
+    !$id=$nextIndex("story")
+!endif
+!if $release != ""
+release($release)
+frame $release {
+!endif
+label " " as $id <<space>> 
+!if $release != ""
+}
+!endif
+!if $last_story != ""
+    $last_story ~[hidden]~> $id
+!else
+    !if $last_action != ""
+        $last_action 0~[hidden]~ $id
+    !endif
+!endif
+%set_variable_value("$last_story", $id)
+!endprocedure
+
+!unquoted procedure question($text)
+!$qid = $nextIndex("q")
+label "$text" as $qid 
+$last_story @------0 $qid
+!endprocedure

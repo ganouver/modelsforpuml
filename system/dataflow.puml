@@ -1,0 +1,205 @@
+!include <tupadr3/common>
+!include <tupadr3/font-awesome/flash>
+!include <tupadr3/font-awesome-5/database>
+!include <tupadr3/font-awesome-5/question>
+
+
+skinparam wrapwidth 400
+skinparam actorStyle awesome
+skinparam ArrowColor dimgray
+skinparam nodesep 25
+skinparam ranksep 25
+
+skinparam frame<<group>> {
+    roundCorner 11
+    backgroundColor ghostwhite
+    borderColor black
+    FontColor darkslategray
+    shadowing false
+}
+
+skinparam Note {
+    BorderColor      black
+    backgroundColor  ivory
+    shadowing true
+}
+
+skinparam rectangle<<function>> {
+    roundCorner 15
+    backgroundColor business
+}
+
+skinparam rectangle<<service>> {
+    roundCorner 15
+    backgroundColor azure
+    borderColor slategray
+    shadowing false
+}
+
+
+skinparam rectangle<<system>> {
+    roundCorner 1
+    backgroundColor lightgray
+}
+
+
+skinparam rectangle<<event>> {
+    roundCorner 15
+    backgroundColor pink
+}
+
+
+skinparam rectangle<<storage>> {
+    roundCorner 15
+    backgroundColor skyblue
+}
+
+
+hide <<function>> stereotype
+
+!$last_source = ""
+!$last_target = ""
+
+!unquoted procedure function($id, $title, $descr="")
+rectangle $id <<function>> [
+**<font size=15>[F:$id]</font>  $title**
+!if $descr != ""
+--
+<size:11>$descr
+!endif
+]
+!end procedure
+
+!unquoted procedure service($id, $title, $descr="", $style="")
+rectangle $id <<service>> $style [
+**$title**
+**<font size=11 color=gray>[ $id ]</font>**
+!if $descr != ""
+--
+<size:11>$descr
+!endif
+]
+!end procedure
+
+
+!procedure activity_start($id, $title)
+rectangle $id <<function>> [
+**<font size=15>[F:$id]</font>  $title**
+--
+!end procedure
+!define activity_end ]
+
+!procedure event($id, $title, $descr="")
+rectangle $id <<event>> [
+<$flash{scale=0.4}> **$title**
+!if $descr != ""
+--
+<size:11>$descr
+!endif
+]
+!end procedure
+
+!define small($text) <size:11>$text
+
+!unquoted procedure storage($id, $title, $descr="")
+rectangle $id <<storage>> [
+<$database{scale=0.4}>  **$title**
+!if $descr != ""
+--
+<size:11>$descr
+!endif
+]
+!end procedure
+
+!procedure storage_start($id, $title)
+rectangle $id <<storage>> [
+<$database{scale=0.4}>  **$title**
+--
+!end procedure
+
+
+!unquoted procedure system($id, $title, $descr="", $style="")
+rectangle $id <<system>> $style [
+**$title**
+!if $descr != ""
+--
+<size:11>$descr
+!endif
+]
+!end procedure
+
+!function appendItem($m , $i)
+    !$r = ""
+    !if $i == ""
+        !return $m
+    !endif
+    !if $m != ""
+        !$r = $m + "\n"
+    !endif
+    !$r = $r + $i
+    !return $r
+!end function
+
+
+!unquoted procedure than_flow($to, $i1=" ", $i2 ="", $i3="", $d="", $l="-", $style="", $s = "", $e=">")
+flow($last_target, $to, $i1, $i2, $i3, $d, $l, $style, $s, $e)
+!endprocedure
+
+!unquoted procedure and_flow($to, $i1=" ", $i2 ="", $i3="", $d="", $l="-", $style="", $s = "", $e=">")
+flow($last_source, $to, $i1, $i2, $i3, $d, $l, $style, $s, $e)
+!endprocedure
+
+
+!unquoted procedure flow($from, $to, $i1=" ", $i2 ="", $i3="", $d="", $l="-", $style="", $s = "", $e=">")
+!local $c = ""
+!local $lid = "label_" + $from + "_" + $to
+
+!if $style != ""
+    !local $c="[" + $style + "]"
+!endif
+!local $m = ""
+!local $m = appendItem($m, $i1)
+!local $m = appendItem($m, $i2)
+!local $m = appendItem($m, $i3)
+!local $out1 = $s + $l + $c + $d + $l 
+!local $out2 =  $l + $c + $d + $l + $e
+
+label $lid as "$m"
+$from $out1 $lid
+$lid $out2 $to
+
+!$last_source = $from
+!$last_target = $to
+!end procedure
+
+
+!function assigned_to($target, $note="", $custom="")
+!local $r = "=" + $custom + "=@ " + $target
+!if $note != ""
+!local $r = $r + " : " + $note
+!endif
+!return $r
+!endfunction
+
+!function fires($target, $dir="")
+!return "~" + $dir + "~> " + $target
+!endfunction
+
+!define  group($id, $title) frame "$title" as $id <<group>> #line.dotted
+
+!function $under($target) !return "-[hidden]u- " + $target
+!function $leftof($target) !return "-[hidden]r- " + $target
+!function $rightof($target) !return "-[hidden]l- " + $target
+!function $above($target) !return "-[hidden]d- " + $target
+
+!$index = 0
+
+!function nextIndex()
+!$index = $index + 1
+!return $index
+!endfunction
+
+!procedure resetIndex()
+!$index = 0
+!end procedure
+

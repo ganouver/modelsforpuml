@@ -1,0 +1,24 @@
+@startuml
+
+!include ../system/dataflow.puml
+
+system(input, "Input System")
+system(output, "Output System")
+
+actor user
+
+group(g1, activityGroup) {
+    function(collect, Сбор информации)
+    function(report, Отображение отчетов)
+}
+storage(stg, DataStorage)
+
+flow(user, collect, Анкетные данные, и еще что-то)
+flow(collect, user, Анкетные данные, и еще что-то, $d=u)
+flow(input, collect, Дополнительная информация)
+    than_flow(stg, Собранная информация )
+    than_flow(output, Собранная информация , $d=R)
+
+flow(stg, report, " Данные для отчетов" , $d=U)
+    than_flow(user, Отчеты , $d=U)
+@enduml

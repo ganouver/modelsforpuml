@@ -1,0 +1,41 @@
+
+@startuml
+
+!include ../cards/storymap.puml
+
+title Storymap example
+
+goal(Заявки на пропуск)
+    action("Запросить заявку на пропуск")
+        story("Заявка на пропуск для гостей", $release=R0)
+        space(R1)
+        story("Заявка на пропуск для автомобилей")
+    action("Житель получает уведомления ")
+        space(R0)
+    action("Житель получает уведомления ")
+        space(R0)
+    action("Оплатить парковку")
+       story("Гость оплачивает парковку самостоятельно", $release=R0)
+
+
+goal( "G1 Title G1 Title G1 Title G1 Title", "G1 description G1 description G1 description G1 description") 
+    action( "Делай раз")
+        space(R0)
+        story("s1", "Story1", $release=R1)
+    action( "Делай два")
+        story("Story2-2", $release=R0)
+        story("Story2-1", $id="AAAA", $release=R1)
+        story("Story3")
+            question("Question to Story")
+        story("Story4")
+    action("Делай 3")
+        story(",e,e,e", $release=R0)
+        space(R1)
+        story(",e,e,e")
+
+goal(goal, Goal Title) 
+    action(a1, "Action1")
+
+
+
+@enduml

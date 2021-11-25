@@ -1,0 +1,110 @@
+@startuml
+
+
+skinparam WrapWidth 170
+skinparam DefaultTextAlignment center
+skinparam storage {
+    BackgroundColor<<objective>> #lightgreen
+    BackgroundColor<<overcome>>  #pink
+    BackgroundColor<<milestone>> #lightcyan
+}
+hide stereotype
+
+!$index=0
+!$last_logic=""
+
+!function $nextIndex($prefix)
+!$index = $index + 1
+!return $prefix + $index
+!endfunction
+
+!unquoted procedure objective($title, $description="", $id="")
+!if $id == ""
+    !$id=$nextIndex("objective")
+!endif
+storage $id <<objective>>[
+**$title** 
+!if $description != ""
+--
+<size:10>$description
+!endif
+]
+%set_variable_value("$last_objective", $id)
+%set_variable_value("$last_id", $id)
+!endprocedure
+
+!unquoted procedure overcome($title, $description="", $id="")
+!if $id == ""
+    !$id=$nextIndex("overcome")
+!endif
+storage $id <<overcome>>[
+**$title** 
+!if $description != ""
+--
+<size:10>$description
+!endif
+]
+!$parent = $last_logic
+!if $parent == ""
+    !$parent = $last_objective
+!endif
+!if $parent != ""
+    $parent --> $id
+!endif
+
+%set_variable_value("$last_overcome", $id)
+%set_variable_value("$last_id", $id)
+!endprocedure
+
+!unquoted procedure milestone($title, $description="", $id="")
+!if $id == ""
+    !$id=$nextIndex("milestone")
+!endif
+storage $id <<milestone>>[
+**$title** 
+!if $description != ""
+--
+<size:10>$description
+!endif
+]
+!$parent = $last_logic
+!if $parent == ""
+    !$parent = $last_overcome
+!endif
+!if $parent != ""
+    $parent --> $id
+!endif
+%set_variable_value("$last_milestone", $id)
+%set_variable_value("$last_id", $id)
+!endprocedure
+
+!unquoted procedure Logic($text)
+!$id=$nextIndex("milestone")
+storage "$text" as $id
+!if $last_id != ""
+    $last_id --> $id
+!endif
+%set_variable_value("$last_logic", $id)
+!endprocedure
+
+!unquoted procedure endLogic()
+%set_variable_value("$last_logic", "")
+!endprocedure
+
+@enduml
+
+objective(Общие требования)
+
+    overcome(Проблема1, описание проблемы 1)
+        milestone(step1)
+    overcome(Проблема1.1, описание проблемы 1.1)
+    Logic(And)
+        milestone(step1)
+        milestone(step2)
+        endLogic()
+
+objective(Цель2)
+    overcome(Проблема1, описание проблемы 1)
+    milestone(step3, описание 3)
+    milestone(step4)
+
