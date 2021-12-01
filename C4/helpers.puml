@@ -12,11 +12,17 @@
     %set_variable_value($ContainerProtoVar($id, "tags"), $tags)
 !endprocedure
 
+!function getValue($proto, $var, $override="")
+!if ($override != "")
+    !return $override
+!else
+    !return %get_variable_value($ContainerProtoVar($proto, $var))
+!endfunction
 
 'creates instance of declared C4 container 
-!unquoted procedure ContainerInstance($id, $proto)
+!unquoted procedure ContainerInstance($id, $proto, $title="")
 !if (%variable_exists($ContainerProtoVar($proto, "title")))
-    Container($id, %get_variable_value($ContainerProtoVar($proto, "title")), %get_variable_value($ContainerProtoVar($proto, "tech")), %get_variable_value($ContainerProtoVar($proto, "descr")), $tags=%get_variable_value($ContainerProtoVar($proto, "tags")))
+    Container($id, getValue($proto, "title", $title), %get_variable_value($ContainerProtoVar($proto, "tech")), %get_variable_value($ContainerProtoVar($proto, "descr")), $tags=%get_variable_value($ContainerProtoVar($proto, "tags")))
 !else
     rectangle $id as "Прототип $proto не найден!! " #red
 !endif
