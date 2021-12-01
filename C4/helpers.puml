@@ -1,0 +1,25 @@
+
+
+!function $ContainerProtoVar($proto, $var) 
+    !return "container_" + $proto + "_" + $var
+!endfunction
+
+'creates declaration of C4 container to be used later by ID
+!unquoted procedure ContainerPrototype($id, $title, $technology, $descr="", $tags ="")
+    %set_variable_value($ContainerProtoVar($id, "title"), $title)
+    %set_variable_value($ContainerProtoVar($id, "tech"), $technology)
+    %set_variable_value($ContainerProtoVar($id, "descr"), $descr)
+    %set_variable_value($ContainerProtoVar($id, "tags"), $tags)
+!endprocedure
+
+
+'creates instance of declared C4 container 
+!unquoted procedure ContainerInstance($id, $proto)
+!if (%variable_exists($ContainerProtoVar($proto, "title")))
+    Container($id, %get_variable_value($ContainerProtoVar($proto, "title")), %get_variable_value($ContainerProtoVar($proto, "tech")), %get_variable_value($ContainerProtoVar($proto, "descr")), $tags=%get_variable_value($ContainerProtoVar($proto, "tags")))
+!else
+    rectangle $id as "Прототип $proto не найден!! " #red
+!endif
+    
+    %set_variable_value("container_##$id##_tech", $technology)
+!endprocedure

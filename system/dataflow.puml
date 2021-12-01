@@ -54,6 +54,14 @@ skinparam rectangle<<storage>> {
     backgroundColor skyblue
 }
 
+skinparam card<<label>> {
+    backgroundColor white
+    borderColor Gray
+    BorderStyle dotted
+    CardBorderThickness 0.5
+    shadowing false
+}
+
 
 hide <<function>> stereotype
 
@@ -134,7 +142,7 @@ rectangle $id <<system>> $style [
         !return $m
     !endif
     !if $m != ""
-        !$r = $m + "\n"
+        !$r = $m + "\n....\n"
     !endif
     !$r = $r + $i
     !return $r
@@ -164,7 +172,7 @@ flow($last_source, $to, $i1, $i2, $i3, $d, $l, $style, $s, $e)
 !local $out1 = $s + $l + $c + $d + $l 
 !local $out2 =  $l + $c + $d + $l + $e
 
-label $lid as "$m"
+card $lid as "$m" <<label>>
 $from $out1 $lid
 $lid $out2 $to
 
