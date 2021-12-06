@@ -13,11 +13,18 @@
 !endprocedure
 
 !function getValue($proto, $var, $override="")
-!if ($override != "")
-    !return $override
-!else
+!if ($override == "")
     !return %get_variable_value($ContainerProtoVar($proto, $var))
+!else
+    !if (%substr($override, 0, 1) == "+")
+        !$result = %get_variable_value($ContainerProtoVar($proto, $var))
+        !$result = $result + %substr($override, 1, %strlen($override))
+        !return $result
+    !else
+        !return $override
+    !endif
 !endfunction
+        
 
 'creates instance of declared C4 container 
 !unquoted procedure ContainerInstance($id, $proto, $title="")
