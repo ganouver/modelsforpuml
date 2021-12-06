@@ -1,0 +1,145 @@
+
+
+skinparam WrapWidth 200
+skinparam DefaultFontName Segoe UI
+skinparam DefaultFontSize 11
+skinparam DefaultTextAlignment center
+skinparam card<<fail>> {
+    BackgroundColor pink
+}
+
+skinparam Nodesep 20
+skinparam Ranksep 20
+
+skinparam card<<action>> {
+    BackgroundColor white
+}
+
+skinparam usecase<<case>> {
+    DefaultTextAlignment center
+}
+
+hide <<fail>> stereotype 
+
+left to right direction
+
+
+!$active_fail=""
+
+!unquoted procedure fail($id, $title, $descr="")
+card $id <<fail>> [
+    =<&fire>
+    ===$title
+!if ($descr != "")
+----
+<size:10>$descr
+!endif
+]
+%set_variable_value("$active_fail", $id)
+!endprocedure
+
+!$show_unused = %false()
+
+!procedure SHOW_UNUSED()
+!$show_unused = %true()
+!endprocedure
+
+!procedure $setRendered($id)
+!$markvar = "rendered" + %id
+%set_variable_value(!$markvar, %true())
+!endprocedure
+
+!function $isRendered($if)
+!$markvar = "rendered" + %id
+!if (%get_variable_value(!$markvar) != "")
+    !return %true()
+!return %false()
+!endfunction
+
+!unquoted procedure case($id, $title, $descr="")
+!$linksvar = "link_" + $id
+%set_variable_value("$active_case", "")
+!if (%get_variable_value($linksvar) != "") || ($show_unused)
+usecase $id <<case>> [
+    ===$title
+!if ($descr != "")
+----
+<size:10>$descr
+!endif
+]
+%set_variable_value("$active_case", $id)
+%get_variable_value($linksvar)
+!endif
+!endprocedure
+
+!unquoted procedure component($id, $title, $descr="")
+!$linksvar = "rels_" + $id
+!if (%get_variable_value($linksvar) != "") || ($show_unused)
+component $id  [
+    ===$title
+!if ($descr != "")
+----
+<size:10>$descr
+!endif
+]
+%get_variable_value($linksvar)
+!endif
+!endprocedure
+
+!unquoted procedure action($id, $title, $descr="")
+!$linksvar = "rels_" + $id
+!if (%get_variable_value($linksvar) != "") || ($show_unused)
+card $id <<action>> [
+    ===$title
+!if ($descr != "")
+----
+<size:10>$descr
+!endif
+]
+%get_variable_value("rels_" + $id)
+!endif
+!endprocedure
+
+!procedure leads($target_id, $comment = "", $d="")
+!if ($comment != "")
+    !$comment = "\n" + $comment
+!endif
+$active_fail ~$d~>> $target_id : <<leads>> $comment
+!endprocedure
+
+!procedure link_to_case($case_id, $stereo, $comment = "", $arrow)
+!if ($comment != "")
+    !$comment = "\n" + $comment
+!endif
+!$new_rel= $active_fail + " " + $arrow +" " + $case_id + ": " + $stereo + $comment + %newline() + %get_variable_value("link_" + $case_id)
+%set_variable_value("link_" + $case_id, $new_rel)
+!endprocedure
+
+' добавляет отношение от сценария к отказу
+' отношение выводится на диаграмме после вывода сценария
+!procedure protectedBy($case_id, $comment = "")
+link_to_case($case_id, "<<protects>>", $comment, "<..")
+!endprocedure
+
+' добавляет отношение от сценария к отказу
+' отношение выводится на диаграмме после вывода сценария
+!procedure preventedBy($case_id, $comment = "")
+link_to_case($case_id, "<<prevents>>", $comment, "<.[#green].")
+!endprocedure
+
+' добавляет отношение расширения от одного сценария к другому
+!procedure extends($target_id, $comment = "", $d="")
+!if (%get_variable_value("$active_case") != "")
+!if ($comment != "")
+    !$comment = "\n" + $comment
+!endif
+$target_id <.$d. %get_variable_value("$active_case") : <<extends>> $comment
+!endif
+!endprocedure
+
+!procedure realizedBy($comp_id, $d="")
+!if (%get_variable_value("$active_case") != "")
+!$new_rel= %get_variable_value("$active_case") + "<|." + $d + ". " + $comp_id + ": <<realize>>" + %newline() + %get_variable_value("rels_" + $comp_id)
+%set_variable_value("rels_" + $comp_id, $new_rel)
+!endif
+!endprocedure
