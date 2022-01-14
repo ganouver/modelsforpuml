@@ -1,0 +1,124 @@
+
+
+!function $getCompVarName($id, $label)
+!return "cmpv_" + $id + "_" + $label
+!endfunction
+
+!function $buildId($deploy, $comp)
+!return $deploy + "_" + $comp
+!endfunction
+
+!function $buildLine($link)
+    !if ($link.line == "")
+        !return "-->"
+    !else
+        !return $link.line
+    !endif
+!endfunction
+
+!procedure $buildJsonLink($srcid, $targetid, $link)
+  !$label = $link.label
+  !if $label == ""
+    !$label = " "
+  !endif
+  !if ($link.direction == "up")
+    Rel_U($srcid, $targetid, $label, $link.technology, $tags=$link.tags)
+  !elseif ($link.direction == "left")
+    Rel_L($srcid, $targetid, $label, $link.technology, $tags=$link.tags)
+  !elseif ($link.direction == "right")
+    Rel_R($srcid, $targetid, $label, $link.technology, $tags=$link.tags)
+  !else
+    Rel_D($srcid, $targetid, $label, $link.technology, $tags=$link.tags)
+  !endif
+!endprocedure
+
+!procedure BUILD_C4_DEPLOYMENT($containers, $nodes, $users="", $env)
+
+'remember containers properties
+!foreach $comp in $containers
+  %set_variable_value($getCompVarName($comp.id, "label"), $comp.label)
+  %set_variable_value($getCompVarName($comp.id, "technology"), $comp.technology)
+  %set_variable_value($getCompVarName($comp.id, "tags"), $comp.tags)
+  %set_variable_value($getCompVarName($comp.id, "type"), $comp.type)
+!endfor
+
+'create users
+!foreach $u in $users
+Person($u.id, $u.label)
+!endfor
+
+'create environment
+!foreach $sys in $env
+System_Ext($sys.id, $sys.label)
+!endfor
+
+
+'create nodes and containers on diagram
+!foreach $srv in $nodes
+  Deployment_Node($srv.id, "$srv.label"){
+    !foreach $c in $srv.containers
+        !$id = $c.type
+        !$label = %get_variable_value($getCompVarName($id, "label"))
+        !$tech = %get_variable_value($getCompVarName($id, "technology"))
+        !$tgs = %get_variable_value($getCompVarName($id, "tags"))
+        !$type = %get_variable_value($getCompVarName($id, "type"))
+        !$cid = $buildId($srv.id, $id)
+        !if ($type == "database")
+          ContainerDb($cid, "$label", "$tech", $tags="$tgs")
+        !else
+          Container($cid, "$label", "$tech", $tags="$tgs"){
+            !foreach $port in $c.ports
+              !$portid = $cid + "_" + $port.id
+              !$portLabel = $port.label
+              !$portLabel ?= $port.id
+              card $portid as "$portLabel" #white;line.dotted
+            !endfor
+          }
+        !endif
+    !endfor
+  }
+!endfor
+
+'create links between containers
+!foreach $srv in $nodes
+  !foreach $c in $srv.containers
+    !$sourceid = $buildId($srv.id, $c.type)
+    !foreach $l in $c.links
+      !$host = $l.host
+      !if ($host == "")
+        !$host = $srv.id
+      !endif
+      !if ($l.target !="")
+        !$targetid = $l.target
+      !else
+        !$targetid = $buildId($host, $l.container)
+      !endif
+      $buildJsonLink($sourceid, $targetid, $l)
+    !endfor
+    !foreach $port in $c.ports
+      !$portid = $sourceid + "_" + $port.id
+      !foreach $l in $port.links
+        !$host = $l.host
+        !if ($host == "")
+          !$host = $srv.id
+        !endif
+        !if ($l.target !="")
+          !$targetid = $l.target
+        !else
+          !$targetid = $buildId($host, $l.container)
+        !endif
+        $buildJsonLink($portid, $targetid, $l)
+      !endfor
+    !endfor
+  !endfor
+!endfor
+
+'create links from users
+!foreach $u in $users
+  !foreach $l in $u.links
+      !$targetid = $buildId($l.host, $l.container)
+      $buildJsonLink($u.id, $targetid, $l)
+  !endfor
+!endfor
+
+!endprocedure

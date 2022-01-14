@@ -1,0 +1,61 @@
+!$containers = {
+	"all":	[
+		{
+			"id": "server",
+			"title": "Большой сервер", 
+            "technology" : "java"
+		},
+		{
+			"id": "client",
+			"title": "Важный клиент",
+			"links": [
+				{
+					"title": "обращается к",
+					"container": "server",
+					"line":"..>>"
+				}
+			]
+		}
+	]
+}
+
+!$nodes= {
+	"all" : [
+		{
+			"id": "srv_node",
+            "title": "Server Node1",
+			"containers": [
+				{
+					"type": "server"
+				},
+				{
+					"type": "client",
+					"links": [
+						{
+							"title": "обращается к",
+							"technology": "DEB",
+							"container": "server",
+                            "line":"..>>"
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "cli_node",
+            "title": "Client Node",
+			"containers": [
+				{
+					"type": "client",
+					"links": [
+						{
+							"title": "обращается к",
+							"host": "srv_node",
+							"container": "server"
+						}
+					]
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,19 @@
+!if (%get_variable_value("$JSON_COMMON") == "")
+%set_variable_value("$JSON_COMMON", "1")
+
+!procedure $hideJsonNotes()
+%set_variable_value("$HIDE_JSON", "1")
+!endprocedure
+
+!procedure $DrawJson($body="")
+!$txt = $body
+!if (%get_variable_value("$HIDE_JSON") == "")
+rectangle as "
+{{json
+$txt
+}}
+"
+!endif
+!endprocedure
+
+!endif '$JSON_COMMON

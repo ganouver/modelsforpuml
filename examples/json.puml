@@ -1,0 +1,8 @@
+@startuml jsonproc
+!include data.json
+!include C4_Deployment.puml
+!include C4/jsondeployment.puml
+
+BUILD_C4_DEPLOYMENT($containers.all, $nodes.all)
+
+@enduml

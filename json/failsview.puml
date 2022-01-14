@@ -1,0 +1,77 @@
+
+!include system/failures.puml
+
+!function $getCompVarName($id, $label)
+!return "cmpv_" + $id + "_" + $label
+!endfunction
+
+!function $getActionVarName($id, $label)
+!return "act_" + $id + "_" + $label
+!endfunction
+
+!procedure BUILD_FAILURES_VIEW($nodes, $containers="", $actions="")
+
+'remember containers
+!foreach $soft in $containers
+  %set_variable_value($getCompVarName($soft.id, "fails"), $soft.fails)
+!endfor
+
+
+'render fails
+!foreach $node in $nodes
+    !$fc = 0
+    frame $node.id as "$node.label" {
+        !foreach $fail in $node.fails 
+            fail($fail.id, $fail.label, $fail.notes)
+            !$fc = $fc + 1
+            !foreach $rec in $fail.recovery
+                protectedBy($rec)
+            !endfor
+            !foreach $oc in $fail.outcome
+                leads($oc)
+            !endfor
+        !endfor
+        !foreach $c in $node.containers
+            !$cf = %get_variable_value($getCompVarName($c.type, "fails"))
+            !foreach $fail in $cf
+                !$fid = $node.id + "_" + $fail.id
+                fail($fid, $fail.label, $fail.notes)
+                !$fc = $fc + 1
+                !foreach $rec in $fail.recovery
+                    protectedBy($rec)
+                !endfor
+                !foreach $oc in $fail.outcome
+                    leads($node.id + "_" + $oc)
+                !endfor
+            !endfor
+        !endfor
+    }
+    !if ($fc <= 0)
+        remove $node.id
+    !endif
+!endfor
+
+'render actions/cases
+!foreach $action in $actions.recovery
+  case($action.id, $action.label, $action.notes)  
+  !foreach $re in $action.realization
+    realizedBy($re)
+  !endfor
+
+  !if ($action.extends != "")
+    extends($action.extends.target, $action.extends.label)
+  !endif
+!endfor
+
+
+'render implementations
+!foreach $soft in $containers
+    component($soft.id, $soft.label)
+!endfor
+
+!foreach $action in $actions.preparation
+  action($action.id, $action.label)  
+!endfor
+
+
+!endprocedure

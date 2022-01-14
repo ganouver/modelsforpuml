@@ -118,7 +118,7 @@ $active_fail ~$d~>> $target_id : <<leads>> $comment
 ' добавляет отношение от сценария к отказу
 ' отношение выводится на диаграмме после вывода сценария
 !procedure protectedBy($case_id, $comment = "")
-link_to_case($case_id, "<<protects>>", $comment, "<..")
+link_to_case($case_id, "<<recover>>", $comment, "<..")
 !endprocedure
 
 ' добавляет отношение от сценария к отказу
