@@ -1,0 +1,106 @@
+'добавить строку $line к переменной $varname
+!unquoted procedure append_line($varname, $line, $delim=%newline())
+    !$varval = %get_variable_value($varname) 
+'!log before add ($line) to ($varname) is = $varval
+    !if $varval != ""
+        !$varval = $varval + $delim
+    !endif
+    !$varval = $varval + $line
+    %set_variable_value($varname, $varval) 
+'!log after add ($line) to ($varname) is = $varval
+!end procedure
+
+
+!unquoted function list_contains($listname, $val)
+!encodedVal = "@"+$val+"@"
+!listval = %get_variable_value($listname) 
+'!log before add ($val) list ($listname) is = listval
+!if %strpos(listval, encodedVal) < 0
+    !return %false()
+!endif
+!return %true()
+!end function
+
+'добавить элемент в список
+!unquoted procedure list_add($listname, $val, $delim="+")
+!encodedVal = "@"+$val+"@"
+!listval = %get_variable_value($listname) 
+'!log before add ($val) list ($listname) is = listval
+!if %strpos(listval, encodedVal) < 0
+    append_line($listname, encodedVal, $delim)
+!endif
+'!listval = %get_variable_value($listname) 
+'!log after add ($val) list ($listname) is = listval
+!end procedure
+
+'вызывать процедуру для каждого элемента списка
+!unquoted procedure list_iterate($listname, $proc, $delim="+")
+!listval = %get_variable_value($listname) 
+'!log $listname = listval
+!while listval != ""
+    !item = listval
+    !nextPlus = %strpos(listval, $delim)
+'    !log found plus in (listval) at (nextPlus)
+    !if (nextPlus > 0)
+        !item = %substr(listval, 0, nextPlus)
+        !listval = %substr(listval, nextPlus + 1, %strlen(listval) - nextPlus - 1)
+'        !log nextListVal is (listval) 
+    !else
+        !listval = ""
+    !endif
+'    !log nextItemBeforeCrop is item
+    !item = %substr(item, 1, %strlen(item)-2)
+
+    %invoke_procedure($proc, item)
+!endwhile
+!end procedure
+
+!unquoted procedure propset($id, $prop, $val)
+    !$varname = $id + "_" + $prop
+    %set_variable_value($varname, $val) 
+!end procedure
+
+
+!unquoted function propget($id, $prop, $default="")
+    !$varname = $id + "_" + $prop
+    !$varval = %get_variable_value($varname) 
+    !if $varval == ""
+        !return $default
+    !endif
+    !return $varval
+!end function
+
+!unquoted procedure propappend($id, $prop, $val, $delim="")
+    !$varname = $id + "_" + $prop
+    append_line($varname, $val, $delim)
+!end function
+
+!unquoted procedure prop_list_add($id, $prop, $val, $delim="+")
+    !$varname = $id + "_" + $prop
+    list_add($varname, $val, $delim)
+!end function
+
+!unquoted procedure prop_list_iterate($id, $prop, $proc, $delim="+")
+    !$varname = $id + "_" + $prop
+    list_iterate($varname, $proc, $delim)
+!end procedure
+
+!unquoted function prop_list_contains($id, $prop, $val)
+    !$varname = $id + "_" + $prop
+    !return list_contains($varname, $val)
+!end function
+
+
+!unquoted function pair_var($first, $second)
+    !return $first + "!" + $second
+!end function
+
+!unquoted function pair_first($pair)
+    !delimpos = %strpos($pair, "!")
+    !return %substr($pair, 0, delimpos)
+!end function
+
+!unquoted function pair_second($pair)
+    !delimpos = %strpos($pair, "!")
+    !return %substr($pair, delimpos + 1, %strlen($pair) - delimpos - 1)
+!end function

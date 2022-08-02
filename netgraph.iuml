@@ -1,0 +1,86 @@
+
+skinparam actorstyle awesome
+skinparam UsecaseBackgroundColor Business
+
+!include C:\WORK\tools\plantuml\LIB\modelsforpuml\vars.iuml
+
+!global $linksvarname = "links"
+
+!procedure node($keyword, $id, $label, $img="")
+!$var_marker = $id + "_exist"
+!if $label == ""
+    !$label = $id
+!endif
+!$varname = "last" + $keyword
+%set_variable_value($varname, $id)
+!if $img != ""
+    !$label = "<$" + $img + "> " + $label
+!endif
+!if %get_variable_value($var_marker) == ""
+    $keyword $id as "$label"
+    %set_variable_value($var_marker, "exist") 
+!endif
+!end procedure
+
+!function last($keyword)
+!$varname = "last" + $keyword
+!return %get_variable_value($varname)
+!end function
+
+!unquoted procedure artifact($id, $label="", $img="")
+    node("file", $id, $label, $img) 
+!end procedure
+
+!unquoted procedure role($id, $label="")
+    node("actor", $id, $label) 
+!end procedure
+
+!unquoted procedure perform($id, $label="")
+    node("usecase", $id, $label)
+    !$linktext = last('actor') + " -[#gray]r- " + $id 
+    append_line($linksvarname,  "$linktext")
+!end procedure
+
+!unquoted procedure produce($id, $label="")
+    node("file", $id, $label)
+    !$linkval = last("usecase")+ " --> " + $id 
+    append_line($linksvarname, $linkval)
+!end procedure
+
+!unquoted procedure choose($id, $label="")
+    node("hexagon", $id, $label)
+    !$linkval = last("usecase")+ " --> " + $id 
+    append_line($linksvarname, $linkval)
+!end procedure
+
+
+!unquoted procedure use($id, $label="")
+!if $label != ""
+    !$label = " : " + $label 
+!endif
+    !$linkval = $id + " ..> " + last("usecase") + $label
+    append_line($linksvarname, $linkval)
+!end procedure
+
+!unquoted procedure need($id, $label="")
+!if $label != ""
+    !$label = " : " + $label 
+!endif
+    !$linkval = $id + " --> " + last("usecase") + $label
+    append_line($linksvarname,  $linkval)
+!end procedure
+
+!unquoted procedure modify($id, $label="")
+    !$linkval = last("usecase") +  " <-[#darkred]-> " + $id 
+    append_line($linksvarname,  $linkval)
+!end procedure
+
+
+!unquoted procedure render_links()
+'!log links = %get_variable_value($linksvarname)
+%get_variable_value($linksvarname)
+!end procedure
+
+!function $under($x)
+!return "-[hidden]- " + $x
+!end function

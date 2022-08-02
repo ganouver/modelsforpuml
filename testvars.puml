@@ -1,0 +1,44 @@
+
+@startuml 
+!include vars.iuml
+
+!procedure $drawrect($name)
+rectangle $name as "propget($name,label, $name)" propget($name,style)
+!end procedure
+
+!$l = rs
+!$lnks = "alllinks"
+
+
+!procedure rememberLink($from, $to, $label)
+!$lid = pair_var($from, $to)
+list_add($lnks, $lid)
+propset($lid, label, $label)
+!end procedure
+
+!procedure renderLink($lk)
+!$from = pair_first($lk)
+!$to = pair_second($lk)
+$from --> $to : propget($lk, label)
+!end procedure
+
+rememberLink(r1, r5, "bububu")
+rememberLink(r3, r5, "bababa")
+rememberLink(r5, r2, "bababa")
+
+propset(r1, label, "Прямо1")
+propset(r5, label, "Прямо5")
+propset(r1, label, "ПереПрямо1")
+propset(r3, style, "#green")
+propappend(r3, style, "line.dashed", ";")
+
+list_add($l, "r1")
+list_add($l, "r2")
+list_add($l, "r1")
+list_add($l, "r3")
+list_add($l, "r5")
+
+
+list_call($l, "$drawrect")
+list_call($lnks, "renderLink")
+@enduml
