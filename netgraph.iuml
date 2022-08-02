@@ -2,7 +2,7 @@
 skinparam actorstyle awesome
 skinparam UsecaseBackgroundColor Business
 
-!include C:\WORK\tools\plantuml\LIB\modelsforpuml\vars.iuml
+!include vars.iuml
 
 !global $linksvarname = "links"
 
