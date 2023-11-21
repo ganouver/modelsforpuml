@@ -1,0 +1,159 @@
+@startuml
+
+scale 1000 height
+
+!include ../residents\residents-domain-enities.puml
+!include ../include/fordata3.iuml
+
+remove building
+remove estate
+remove residentEstate
+
+title
+    Маркетплейс - информационная модель
+end title
+
+
+
+'skinparam Linetype ortho
+skinparam Nodesep 120
+
+$object(catalog, Каталог, Перечень доступных для заказа в настоящий момент товаров и услуг) {
+    Единичный объект, относится к проекту, не имеет собственных атрибутов
+    $linkTo(включает, category, $me='0..N')
+    $linkTo(включает, product, $me='0..N', $d=l)
+    $linkTo(включает, productPoint, $me='1..6', $d=r)
+}
+$object(category, Категория, Раздел каталога) {
+    $property(ID, "Идентификатор", $type="int", $req=true)
+    $property(title, "Название", "Название категории",$req=true)
+    $property(childrenCount, "Число подкатегорий", Число дочерних подкатегорий, $type="int")
+    $property(preorder, "Порядок", Порядок вывода в интерфейсе, $type="int", $def=0)
+    $property(icon, "Иконка", "Ссылка на изображение категории", $type=URL)
+    $linkTo(включает\nдочерние, category, $me='0..N')
+}
+
+$object(type, Справочник типов товаров/услуг) {
+    $property(code, "Код", $type="int", $req=true)
+    $property(label, "Наименование" )
+}
+
+$object(measure,  Справочник единиц измерения) {
+    $property(code, "Код", $type="int", $req=true)
+    $property(label, "Наименование" )
+}
+
+$object(deliverytype, Справочник типов доставки) {
+    $property(code, "Код", $type="int", $req=true)
+    $property(label, "Наименование" )
+}
+
+$object(paymentType, Справочник типов оплаты) {
+    $property(code, "Код", $type="int", $req=true)
+    $property(label, "Наименование" )
+}
+
+enum orderstatus {
+==Статусы заказов
+---
+| **номер**	| **Статус в Bitrix**                       | **статус в МП** |
+| 1	| новая заявка                              | В обработке |
+| 2	| корректировка товара в сделке. в оплате   | В обработке |
+| 3	| предоплата. назначение ответственного	    | В обработке |
+| 4	| получение и фиксация чека	                | В обработке |
+| 5	| согласование	                            | В обработке |
+| 6 | в работе	                                | В обработке |
+| 7	| подтверждение выполнения	                | В обработке |
+| 8 | к возврату                                | Возврат     |
+| 9	| постоплата	                            | ?           |
+| 10 | успех. оплата полностью получена	| Выполнен      |
+| 11 | провал	                    | Заказ не был оплачен  |
+| 12 | деньги возвращены	                    |  Отменен    |
+| 13 | статус частичной оплаты	            | Частичная оплата|
+| 14 | статус частичного возврата               | ?	          |
+| 15 | Оплачен полностью	                    | Оплачен     |
+| 16 | Отмена заказа                            | Отменяется  |
+| 17 | Оплата возвращена	                    | Возвращен   |
+}
+
+
+$object(preorder, Предзаказ, "Набор товаров в корзине") {
+    $property(cost_total, "Общая стоимость",  вычисляется на фронте)
+    $property(cost_prepay, "Обязательная предоплата",  вычисляется на фронте)
+    $linkTo(превращается в, order, $me="1..N", $d=r, $l=.)
+    $linkTo(содержит, preorderline, $me=1..N, $req=true)
+}
+
+
+$object(orderline, Строка заказа, Один товар в заказе){
+    Содержит не ссылки на справочники адресов, товаров, типов оплаты и т.п.
+    а конкретные значения всех атрибутов заказа, чтобы
+    строка в заказе не изменялась 
+    при изменении каталога товаров и справочников
+    $linkTo(ссылается на , product)
+    $linkTo(ссылается на , paymentType, $d=r)
+}
+
+$object(order, Заказ, "Сформированный заказ во внешней системе") {
+    $property(ID, "Идентификатор", $type="int", $req=true)
+    $property(number, "Номер", $req=true)
+    $property(orderDate, "Дата заказа", $req=true)
+    $property(statusDate, "Дата обновления статуса", $req=true)
+    $property(cost, "Стоимость", $req=true)
+    $property(fixedPrice, "Цена", "Признак фиксированной цены", $type=bool, $def=false)
+    $property(count, "Количество позиций в заказе", $req=true)
+    $property(preview, "Предпросмотр", "изображения для предпросмотра",$req=true, $type="list of(image)")
+    $property(rating, Оценка заказа, $type=int)
+    $property(feedback, Комментарий по заказу)
+    $linkTo(Содержит, orderline, $me="1..N")
+    $linkTo(Имеет статус, orderstatus, $req=1, $d=r)
+    $linkTo(связан по \lномеру телефона, user, $req=1, $d=u)
+}
+
+
+$object(preorderline, "Строка предзаказа/корзины", "Элемент корзины"){
+    $property(count, "Количество", $req=true)
+    $property(cost_total, "Общая стоимость",  вычисляется на фронте)
+    $property(cost_prepay, "Обязательная предоплата",  вычисляется на фронте)
+    $property(delivery_type, "Способ доставки",  "Выбранный способ доставки")
+    $property(delivery_point, "Куда доставить",  "Либо ссылка на ПСВ либо адрес оказания услуги/доставки")
+    $linkTo(превращается в, orderline, $me="1", $d=r, $l=.)
+    $linkTo(ссылается на, product, $req=true, $me=1)
+}
+
+$object(product,"Товар/услуга", "Элемент каталога") {
+    $property(ID, "Идентификатор", $type="int", $req=true)
+    $property(title, "Название", "Название товара или услуги",$req=true)
+    $property(description, "Описание", "Полное описание товара или услуги",$req=true)
+    $linkTo( тип, type, $req=true, $d=l)
+    $linkTo(измеряется в, measure)
+    $linkTo( возможные \lспособы\lдоставки, deliverytype, $req=true, $me="1..N")
+    $property(price, "Цена", "Цена товара или услуги", $type=currency)
+    $property(fixedPrice, "Цена", "Признак фиксированной цены", $type=bool, $def=false)
+    $property(supplier, "Поставщик", "Наименование компании-поставщика",$req=true)
+    $property(preview, "Предпросмотр", "изображение для предпросмотра",$req=true, $type=image)
+    $property(details, "Изображения", "изображения для просмотра в карточке товара",$req=true, $type="list of(image)")
+    $property(active, "Активность", "активность/доступность товара для заказа",$req=true, $type="bool", $def=true)
+    $linkTo( категория, category, $req=true, $me=1)
+    $linkTo(может быть\nдоставлен в, pickpoint, $me="0..N")
+}
+
+$object(pickpoint, Пункт самовывоза) {
+    $property(ID, "Идентификатор", $type="int", $req=true)
+    $property(code, "Код", $type="int", $req=true)
+    $property(address, "Адрес", "Адрес пункта самовывоза",$req=true)
+    $property(lat, "Широта")
+    $property(lon, "Долгота")
+    $property(schedule, "График работы")
+}
+
+$object(productPoint, Точка входа, Плашка для входа в каталог на главной странице) {
+    $property(ID, "Идентификатор", $type="int", $req=true)
+    $property(preorder, "Порядок", Порядок вывода в интерфейсе, $type="int", $def=0)
+    $property(image, "Изображение", "Ссылка на изображение плашки", $type=URL)
+    $linkTo(ссылается на , category, $req = true)
+}
+
+write_footer()
+
+@enduml
