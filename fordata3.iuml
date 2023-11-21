@@ -1,0 +1,116 @@
+@startuml
+
+
+right footer \n\nШаблон "Информационная модель" v0.3
+
+skinparam object {
+    BorderColor dimgray
+}
+
+skinparam arrowcolor dimgray
+
+skinparam shadowing false
+skinparam wrapwidth 250
+skinparam RoundCorner 11
+
+!$footer = ""
+!$current_object = ""
+
+!unquoted procedure $object($label, $title = "", $descr = "")
+    !if $title == ""
+        object $label #ivory
+    !else
+        !$out = "//" + $label + "//\n**" + $title + "**"
+        !if $descr != ""
+            !$out = $out + "\n<size:9>//" + $descr + "//"
+        !endif
+        object "$out" as $label #ivory
+    !endif
+    !$current_object=$label
+!endprocedure
+
+
+
+
+!unquoted function $getDef($def)
+    !if $def == ""
+        !return ""
+    !else
+        !return "<color:#bfbfbf> = " + $def + " </color>"
+    !endif
+!endfunction
+
+!$ReqMarker = "<color:red>*</color>"
+
+!unquoted procedure $property($id, $name, $descr = "", $type = "строка", $def="", $req="false")
+    !$rm = " "
+    !if $req=="true"
+        !$rm = $ReqMarker
+    !endif
+    'title columns
+    !$out = '<#transparent,#f0f0f0>|""' + $rm + $id + '"" | ""<b>' + $name+ '</b>"" |'
+    'type column
+    !$out = $out + "<color:gray>// " + $type + " //</color>" + $getDef($def) + "|"
+    'comment column
+    !$out = $out + "<color:green><i> " + $descr + " </color>|"
+    $out
+!endprocedure
+
+!unquoted procedure $entry($id, $name, $descr = "")
+    !$rm = " "
+    !if $req=="true"
+        !$rm = $ReqMarker
+    !endif
+    'title columns
+    !$out = '<#transparent,#f0f0f0>|""' + $rm + $id + '"" | ""<b>' + $name+ '</b>"" |'
+    'comment column
+    !$out = $out + "<color:green><i> " + $descr + " </color>|"
+    $out
+!endprocedure
+
+
+
+
+!unquoted procedure $link($from, $label, $to, $d="", $req=false, $l="-", $b = "", $e=">", $mb="", $me="")
+    !$outl = ""
+    !$outd = $d
+    !if $label != ""
+        !if $req=="true"
+            !$outl = $ReqMarker
+        !endif
+        !$outl = ": " + $outl +  $label
+    !endif
+    !$arrow = " " + $b + $l + $outd + $l + $e + " "
+    !if $me != ""
+        !$me = '"' + $me + '"'
+    !endif
+    !if $mb != ""
+        !$mb = '"' + $mb + '"'
+    !endif
+    !$footer = $footer + %newline() + $from + $mb + $arrow + $me + $to + $outl
+!endprocedure
+
+!unquoted procedure $linkTo($label, $to, $d="", $req=false, $l="-", $b = "", $e=">", $mb="", $me="")
+    $link($current_object, $label, $to, $d, $req, $l, $b, $e, $mb, $me)
+!endprocedure
+
+!unquoted procedure $contains($to, $d="", $req=false,  $mb="", $me="")
+    $link_contains($current_object, $to, $d, $req, $mb, $me)
+!endprocedure
+
+!unquoted procedure $link_contains($from, $to, $d="", $req=false,  $mb="", $me="")
+    $link($from, "содержит", $to, $d=$d, $req=$req, $l="-", $b = "*", $e=">",  $mb=$mb, $me=$me)
+!endprocedure
+
+!unquoted procedure write_footer()
+    $footer
+!endprocedure
+
+
+!function $under($target)   !return "-[hidden]u-" + $target
+!function $above($target)   !return "-[hidden]-"  + $target
+!function $leftof($target)  !return "-[hidden]r-" + $target
+!function $rightof($target) !return "-[hidden]l-" + $target
+
+
+@enduml
